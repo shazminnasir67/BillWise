@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.claude/
+cache/
+data/
+scratch/
+demo/
+output/
+output_v2/
+output_backup_*/
+submission*
