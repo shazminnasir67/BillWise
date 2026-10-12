@@ -1,0 +1,15 @@
+# Architecture standards (apply to every project)
+- Layering: routes (thin) -> services (logic) -> data/LLM layers. No logic in routes, no HTTP objects in services.
+- Config: one `Settings` class (pydantic-settings). No os.getenv scattered around.
+- Schemas: every endpoint has pydantic request/response models with length limits and types.
+- Errors: custom exceptions mapped to clean JSON `{error, detail, request_id}` by global handlers. Never leak stack traces or keys.
+- Endpoints: versioned `/api/v1/...`, plus `GET /health` (reports which LLM models are active via router.get_status()).
+- Logging: structured logs with request ID; log model used, latency, fallback count. Never log secrets or full user data.
+- LLM safety: treat user input and dataset text as untrusted (prompt injection): keep instructions in the system prompt, wrap data in delimiters, never execute model output, validate JSON output, cap input/output length, set timeouts.
+- Performance: cache repeated LLM/data calls (in-memory TTL), async endpoints for LLM calls, concurrency limit (semaphore) to protect rate limits.
+- Rate limiting: per-IP limit on LLM endpoints (e.g. 10/min) via slowapi, returning 429 with a friendly message.
+- Auth (conditional): needed only if the brief mentions users/roles/privacy, or if time allows as a polish item. Use the lightest option: a static API key header for demo, or JWT login with 1-2 seeded demo users. No user-registration flows, email, or OAuth.
+- Database (conditional): files/pandas first; SQLite only if the brief needs persistence.
+- CORS restricted to the UI origin. Secrets only in .env.
+- Tests: pytest for services and 1-2 endpoint smoke tests via TestClient.
+- Complexity budget: the whole scaffold must take under 15 minutes. If the brief doesn't need a layer, keep the folder but leave it minimal.
